@@ -1,0 +1,6 @@
+fastapi
+pydantic
+firebase-admin
+tensorflow
+uvicorn
+os
