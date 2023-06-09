@@ -41,12 +41,10 @@ def hello():
 
 @app.post('/predict')
 def predict(data: InputData):
-    # Ubah data input menjadi array numpy
-    input_array = np.array([[data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch, data.mchc,
-                             data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]])
-
     # Lakukan prediksi menggunakan model
-    prediction = model.predict(input_array)
+    predict = model.predict([[data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch, data.mchc,
+                              data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]])
 
     # Kembalikan hasil prediksi
-    return {'prediction': float(prediction[0])}
+    res = predict.item()
+    return {"res": res}
