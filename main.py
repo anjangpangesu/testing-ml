@@ -1,7 +1,6 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-import numpy as np
 import tensorflow as tf
+from pydantic import BaseModel
 
 
 # Inisialisasi FastAPI
