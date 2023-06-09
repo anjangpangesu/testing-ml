@@ -30,7 +30,7 @@ app = FastAPI()
 
 # Muat model TensorFlow Lite (.tflite)
 model_path = os.path.join(os.path.dirname(
-    __file__), "./model/elaborate_model.tflite")
+    __file__), "./elaborate_model.tflite")
 interpreter = tf.lite.Interpreter(model_path=model_path)
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
