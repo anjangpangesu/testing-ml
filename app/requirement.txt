@@ -1,6 +1,5 @@
 fastapi
 pydantic
-firebase-admin
+numpy
 tensorflow
 uvicorn
-os
