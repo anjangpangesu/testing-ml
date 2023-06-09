@@ -62,7 +62,10 @@ def predict(data: InputData):
     # Convert the prediction to the corresponding class label
     class_label = np.argmax(prediction, axis=1)[0]
 
+    # Map class label to the desired range (0-3)
+    mapped_label = class_label % 4
+
     # Create the output data
-    output_data = OutputData(prediction=class_label)
+    output_data = OutputData(prediction=mapped_label)
 
     return output_data
