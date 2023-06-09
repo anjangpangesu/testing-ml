@@ -1,15 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-
-# Import TensorFlow and TFLiteInterpreter
+import numpy as np
 import tensorflow as tf
-from tensorflow.lite.python import interpreter as tflite
+from tensorflow.keras.models import load_model
 
-# Define the input schema
+# Define the input data schema
 
 
 class InputData(BaseModel):
-    age: float
+    age: int
     sex: int
     rbc: float
     hgb: float
@@ -25,42 +24,45 @@ class InputData(BaseModel):
     eos: float
     ba: float
 
-# Define the output schema
+# Define the output data schema
 
 
 class OutputData(BaseModel):
     prediction: int
 
 
+# Load the ML model
+model = load_model('./elaborate.h5')
+
 # Initialize the FastAPI app
 app = FastAPI()
 
-# Load the TFLite model
-interpreter = tflite.Interpreter(model_path='elaborate_model.tflite')
-interpreter.allocate_tensors()
+# Define the get endpoint
 
-# Define the prediction route
+
+@app.get("/")
+def hello():
+    return {"message": "ML Model Success to Deploy"}
+
+
+# Define the prediction endpoint
 
 
 @app.post("/predict", response_model=OutputData)
 def predict(data: InputData):
-    # Preprocess the input data
-    input_data = [data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch, data.mchc, data.rdw_cv,
-                  data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]
-    input_data = tf.convert_to_tensor([input_data], dtype=tf.float32)
+    # Convert input data to a numpy array
+    input_array = np.array([[
+        data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
+        data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba
+    ]])
 
-    # Set the input tensor to the interpreter
-    interpreter.set_tensor(interpreter.get_input_details()[
-                           0]['index'], input_data)
+    # Perform the prediction
+    prediction = model.predict(input_array)
 
-    # Run the interpreter
-    interpreter.invoke()
+    # Convert the prediction to the corresponding class label
+    class_label = np.argmax(prediction, axis=1)[0]
 
-    # Get the output tensor from the interpreter
-    output_data = interpreter.get_tensor(
-        interpreter.get_output_details()[0]['index'])
+    # Create the output data
+    output_data = OutputData(prediction=class_label)
 
-    # Create the output response
-    response = OutputData(prediction=int(output_data[0]))
-
-    return response
+    return output_data
