@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import tensorflow as tf
-
+import numpy as np
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -44,9 +44,14 @@ def hello():
 
 @app.post("/predict", response_model=InputData)
 def predict(data: InputData):
-    predict = model.predict([[data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
-                              data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]])
+    input_array = np.array([
+        data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
+        data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba
+    ]).reshape(1, -1)
+
+    predict = model.predict(input_array)
     res = int(predict.item())
+
     interpretations = {
         0: "Normal health status: no immediate need for medical consultation",
         1: "It is advisable to seek a medical consultation in order to facilitate a comprehensive assessment for further diagnostic purposes.",
