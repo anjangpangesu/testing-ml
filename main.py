@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 
 
 class InputData(BaseModel):
-    age: int
+    age: float
     sex: int
     rbc: float
     hgb: float
@@ -62,8 +62,11 @@ def predict(data: InputData):
         # Perform the prediction
         prediction = model.predict(input_array)
 
+        # Convert the prediction to the corresponding class label
+        class_label = int(np.round(prediction[0][0]))
+
         # Create the output data
-        output_data = prediction()
+        output_data = OutputData(prediction=class_label)
 
         return output_data
     except:
