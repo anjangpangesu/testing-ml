@@ -62,11 +62,8 @@ def predict(data: InputData):
         # Perform the prediction
         prediction = model.predict(input_array)
 
-        # Convert the prediction to the corresponding class label
-        class_label = np.argmax(prediction, axis=1)[0]
-
         # Create the output data
-        output_data = OutputData(prediction=class_label)
+        output_data = prediction()
 
         return output_data
     except:
