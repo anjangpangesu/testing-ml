@@ -32,7 +32,7 @@ class OutputData(BaseModel):
 
 # Load the ML model
 try:
-    model = tf.keras.models.load_model('./elaborate.h5')
+    model = tf.keras.models.load_model('./elaborate_model.h5')
 except:
     raise Exception("Failed to load the ML model.")
 
@@ -62,10 +62,10 @@ def predict(data: InputData):
         prediction = model.predict(input_array)
 
         # Convert the prediction to the corresponding class label
-        class_label = int(np.round(prediction[0][0]))
+        Class = np.argmax(prediction, axis=1)[0]
 
         # Create the output data
-        output_data = OutputData(prediction=class_label)
+        output_data = OutputData(prediction=Class)
 
         return output_data
     except:
