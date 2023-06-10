@@ -1,17 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import tensorflow as tf
 import numpy as np
-
-# Initialize the FastAPI app
-app = FastAPI()
-
+import tensorflow as tf
+from tensorflow.keras.models import load_model
 
 # Define the input data schema
 
 
 class InputData(BaseModel):
-    age: float
+    age: int
     sex: int
     rbc: float
     hgb: float
@@ -27,29 +24,50 @@ class InputData(BaseModel):
     eos: float
     ba: float
 
+# Define the output data schema
+
+
+class OutputData(BaseModel):
+    prediction: int
+
 
 # Load the ML model
-model = tf.keras.models.load_model('./elaborate.h5')
+try:
+    model = load_model('./elaborate.h5')
+except:
+    raise Exception("Failed to load the ML model.")
+
+# Initialize the FastAPI app
+app = FastAPI()
 
 # Define the get endpoint
 
 
 @app.get("/")
 def hello():
-    return {"message": "ML Model Success to Deploy"}
-
+    return {"message": "ML Model successfully deployed."}
 
 # Define the prediction endpoint
 
 
-@app.post("/predict", response_model=InputData)
+@app.post("/predict", response_model=OutputData)
 def predict(data: InputData):
-    input_array = np.array([
-        data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
-        data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba
-    ])
+    try:
+        # Convert input data to a numpy array
+        input_array = np.array([
+            [data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
+             data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]
+        ])
 
-    predict = model.predict(input_array)
-    res = predict.item()
+        # Perform the prediction
+        prediction = model.predict(input_array)
 
-    return {"Interpretation": res}
+        # Convert the prediction to the corresponding class label
+        class_label = np.argmax(prediction, axis=1)[0]
+
+        # Create the output data
+        output_data = OutputData(prediction=class_label)
+
+        return output_data
+    except:
+        raise Exception("Failed to make a prediction.")
