@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+
+
+# Initialize the FastAPI app
+app = FastAPI()
+
 
 # Define the input data schema
 
 
 class InputData(BaseModel):
-    age: int
+    age: float
     sex: int
     rbc: float
     hgb: float
@@ -24,18 +27,9 @@ class InputData(BaseModel):
     eos: float
     ba: float
 
-# Define the output data schema
-
-
-class OutputData(BaseModel):
-    prediction: int
-
 
 # Load the ML model
-model = load_model('./elaborate.h5')
-
-# Initialize the FastAPI app
-app = FastAPI()
+model = tf.keras.models.load_model('./elaborate.h5')
 
 # Define the get endpoint
 
@@ -48,24 +42,17 @@ def hello():
 # Define the prediction endpoint
 
 
-@app.post("/predict", response_model=OutputData)
+@app.post("/predict", response_model=InputData)
 def predict(data: InputData):
-    # Convert input data to a numpy array
-    input_array = np.array([[
-        data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
-        data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba
-    ]])
+    predict = model.predict([[data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
+                              data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]])
+    res = int(predict.item())
+    interpretations = {
+        0: "Normal health status: no immediate need for medical consultation",
+        1: "It is advisable to seek a medical consultation in order to facilitate a comprehensive assessment for further diagnostic purposes.",
+        2: "Medical consultation recommended for moderate condition",
+        3: "Immediate medical consultation required"
+    }
 
-    # Perform the prediction
-    prediction = model.predict(input_array)
-
-    # Convert the prediction to the corresponding class label
-    class_label = np.argmax(prediction, axis=1)[0]
-
-    # Map class label to the desired range (0-3)
-    mapped_label = class_label % 4
-
-    # Create the output data
-    output_data = OutputData(prediction=mapped_label)
-
-    return output_data
+    interpretation = interpretations[res]
+    return {"Interpretation": res, "Description": interpretation}
