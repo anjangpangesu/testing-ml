@@ -47,17 +47,9 @@ def predict(data: InputData):
     input_array = np.array([
         data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
         data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba
-    ]).reshape(1, -1)
+    ])
 
     predict = model.predict(input_array)
-    res = int(predict.item())
+    res = predict.item()
 
-    interpretations = {
-        0: "Normal health status: no immediate need for medical consultation",
-        1: "It is advisable to seek a medical consultation in order to facilitate a comprehensive assessment for further diagnostic purposes.",
-        2: "Medical consultation recommended for moderate condition",
-        3: "Immediate medical consultation required"
-    }
-
-    interpretation = interpretations[res]
-    return {"Interpretation": res, "Description": interpretation}
+    return {"Interpretation": res}
