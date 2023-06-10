@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 
 # Define the input data schema
 
@@ -33,7 +32,7 @@ class OutputData(BaseModel):
 
 # Load the ML model
 try:
-    model = load_model('./elaborate.h5')
+    model = tf.keras.models.load_model('./elaborate.h5')
 except:
     raise Exception("Failed to load the ML model.")
 
