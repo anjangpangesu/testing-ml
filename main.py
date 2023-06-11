@@ -56,6 +56,6 @@ def predict(data: InputData):
         # Perform the prediction
         prediction = model.predict(input_array)
 
-        return {"prediction": int(prediction)}
+        return {"prediction": prediction}
     except:
         raise Exception("Failed to make a prediction.")
