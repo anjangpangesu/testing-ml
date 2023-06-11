@@ -58,8 +58,11 @@ def predict(data: InputData):
         # Perform the prediction
         prediction = model.predict(input_array)
 
+        # Get the predicted value and convert it to an integer
+        predicted_value = int(prediction.item())
+
         # Create the output data
-        output_data = OutputData(prediction=input(prediction[0][0]))
+        output_data = OutputData(prediction=predicted_value)
 
         return output_data
     except:
