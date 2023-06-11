@@ -1,17 +1,15 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import numpy as np
 import tensorflow as tf
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 
-# Initialize the FastAPI app
-app = FastAPI()
-
-
-# Define the input data schema
+# Define the input schema
 class InputData(BaseModel):
     age: float
-    sex: int
+    sex: float
     rbc: float
     hgb: float
     hct: float
@@ -27,43 +25,39 @@ class InputData(BaseModel):
     ba: float
 
 
-# Define the output data schema
-class OutputData(BaseModel):
-    prediction: int
+# Load the saved model
+model = tf.keras.models.load_model('./model.h5')
 
 
-# Load the ML model
-try:
-    model = tf.keras.models.load_model('./elaborate_model.h5')
-except:
-    raise Exception("Failed to load the ML model.")
+# Create the FastAPI app
+app = FastAPI()
 
 
-# Define the get endpoint
+# Define the default route
 @app.get("/")
 def hello():
-    return {"message": "ML Model successfully deployed."}
+    return {"message": "fastAPI CloudRun Tensorflow Deployment"}
 
 
-# Define the prediction endpoint
-@app.post("/predict", response_model=OutputData)
+# Define the prediction route
+@app.post("/predict")
 def predict(data: InputData):
-    try:
-        # Convert input data to a numpy array
-        input_array = np.array([
-            [data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
-             data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba]
-        ])
+    # Convert the input data to a DataFrame
+    input_df = pd.DataFrame([data.dict()])
 
-        # Perform the prediction
-        prediction = model.predict(input_array)
+    # Standardize the input features
+    scaler = StandardScaler()
+    input_scaled = scaler.fit_transform(input_df)
 
-        # Get the predicted value and convert it to an integer
-        predicted_value = int(prediction.item())
+    # Make predictions
+    predictions = model.predict(input_scaled)
 
-        # Create the output data
-        output_data = OutputData(prediction=predicted_value)
+    # Prepare the response
+    interpretation = np.argmax(predictions[0][:2])
+    class_ = np.argmax(predictions[0][2:])
+    response = {
+        "interpretation": interpretation,
+        "class": class_
+    }
 
-        return output_data
-    except:
-        raise Exception("Failed to make a prediction.")
+    return response
