@@ -27,6 +27,7 @@ class InputData(BaseModel):
     ba: float
 
 
+# Define the output data schema
 class OutputData(BaseModel):
     prediction: int
 
@@ -38,13 +39,14 @@ except:
     raise Exception("Failed to load the ML model.")
 
 
+# Define the get endpoint
 @app.get("/")
 def hello():
     return {"message": "ML Model successfully deployed."}
 
 
 # Define the prediction endpoint
-@app.post("/predict")
+@app.post("/predict", response_model=OutputData)
 def predict(data: InputData):
     try:
         # Convert input data to a numpy array
@@ -56,6 +58,9 @@ def predict(data: InputData):
         # Perform the prediction
         prediction = model.predict(input_array)
 
-        return {"prediction": prediction}
+        # Create the output data
+        output_data = OutputData(prediction=input(prediction[0][0]))
+
+        return output_data
     except:
         raise Exception("Failed to make a prediction.")
