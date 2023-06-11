@@ -33,7 +33,7 @@ class OutputData(BaseModel):
 
 # Load the ML model
 try:
-    model = tf.keras.models.load_model('elaborate_model.h5')
+    model = tf.keras.models.load_model('./elaborate_model.h5')
 except:
     raise Exception("Failed to load the ML model.")
 
