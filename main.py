@@ -3,9 +3,12 @@ from pydantic import BaseModel
 import numpy as np
 import tensorflow as tf
 
+
+# Initialize the FastAPI app
+app = FastAPI()
+
+
 # Define the input data schema
-
-
 class InputData(BaseModel):
     age: float
     sex: int
@@ -23,8 +26,6 @@ class InputData(BaseModel):
     eos: float
     ba: float
 
-# Define the output data schema
-
 
 class OutputData(BaseModel):
     prediction: int
@@ -32,24 +33,18 @@ class OutputData(BaseModel):
 
 # Load the ML model
 try:
-    model = tf.keras.models.load_model('./elaborate_model.h5')
+    model = tf.keras.models.load_model('elaborate_model.h5')
 except:
     raise Exception("Failed to load the ML model.")
-
-# Initialize the FastAPI app
-app = FastAPI()
-
-# Define the get endpoint
 
 
 @app.get("/")
 def hello():
     return {"message": "ML Model successfully deployed."}
 
+
 # Define the prediction endpoint
-
-
-@app.post("/predict", response_model=OutputData)
+@app.post("/predict")
 def predict(data: InputData):
     try:
         # Convert input data to a numpy array
@@ -61,12 +56,6 @@ def predict(data: InputData):
         # Perform the prediction
         prediction = model.predict(input_array)
 
-        # Convert the prediction to the corresponding class label
-        Class = np.argmax(prediction, axis=1)[0]
-
-        # Create the output data
-        output_data = OutputData(prediction=Class)
-
-        return output_data
+        return {"prediction": int(prediction)}
     except:
         raise Exception("Failed to make a prediction.")
