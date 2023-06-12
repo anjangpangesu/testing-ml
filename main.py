@@ -32,7 +32,7 @@ class OutputData(BaseModel):
 
 
 # Load the ML model
-model = load_model('./elaborate.h5')
+model = load_model('./elaborate_model.h5')
 
 # Initialize the FastAPI app
 app = FastAPI()
