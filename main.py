@@ -1,18 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-import numpy as np
 
-app = FastAPI()
-
-# Load the model
-model = load_model('./model.h5')
+# Define the input data schema
 
 
-# Define the request model
 class InputData(BaseModel):
-    age: float
+    age: int
     sex: int
     rbc: float
     hgb: float
@@ -28,36 +24,45 @@ class InputData(BaseModel):
     eos: float
     ba: float
 
-
-# Define the response model
-class Prediction(BaseModel):
-    interpretation: str
-    class_: int
+# Define the output data schema
 
 
-# Define the default route
+class OutputData(BaseModel):
+    prediction: int
+
+
+# Load the ML model
+model = load_model('./elaborate.h5')
+
+# Initialize the FastAPI app
+app = FastAPI()
+
+# Define the get endpoint
+
+
 @app.get("/")
 def hello():
-    return {"message": "fastAPI CloudRun Tensorflow Deployment"}
+    return {"message": "ML Model Success to Deploy"}
 
 
-# Endpoint for model prediction
-@app.post("/predict", response_model=Prediction)
-def predict(input_data: InputData):
-    # Convert input data to a NumPy array
-    input_array = np.array([[input_data.age, input_data.sex, input_data.rbc, input_data.hgb, input_data.hct,
-                            input_data.mcv, input_data.mch, input_data.mchc, input_data.rdw_cv, input_data.wbc,
-                            input_data.neu, input_data.lym, input_data.mo, input_data.eos, input_data.ba]])
+# Define the prediction endpoint
 
-    # Perform prediction using the model
-    predictions = model.predict(input_array)
 
-    # Decode the predictions
-    interpretation_idx = np.argmax(predictions[:, :2])
-    class_idx = np.argmax(predictions[:, 2:])
-    interpretation = interpretation_idx
-    class_ = class_idx
+@app.post("/predict", response_model=OutputData)
+def predict(data: InputData):
+    # Convert input data to a numpy array
+    input_array = np.array([[
+        data.age, data.sex, data.rbc, data.hgb, data.hct, data.mcv, data.mch,
+        data.mchc, data.rdw_cv, data.wbc, data.neu, data.lym, data.mo, data.eos, data.ba
+    ]])
 
-    # Create the response
-    response = Prediction(interpretation=interpretation, class_=class_)
-    return response
+    # Perform the prediction
+    prediction = model.predict(input_array)
+
+    # Convert the prediction to the corresponding class label
+    class_label = np.argmax(prediction, axis=1)[0]
+
+    # Create the output data
+    output_data = OutputData(prediction=class_label)
+
+    return output_data
